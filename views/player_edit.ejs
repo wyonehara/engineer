@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<h3>選手編集</h3>
+<form action="/players/update/<%= data.id %>" method="POST">
+  名前: <input name="name" value="<%= data.name %>"><br>
+  背番号: <input name="number" value="<%= data.number %>"><br>
+  ポジション: <input name="position" value="<%= data.position %>"><br>
+  年齢: <input name="age" value="<%= data.age %>"><br>
+  <button>更新</button>
+</form>
+<br><a href="/players">戻る</a>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>Cities</title></head>
+<body>
+<h1>都市一覧</h1>
+<table border="1">
+<tr><th>ID</th><th>Name</th><th>Country</th><th>Population</th><th>Industry</th><th>操作</th></tr>
+<% data.forEach(c => { %>
+<tr>
+  <td><%= c.id %></td>
+  <td><a href="/cities/detail/<%= c.id %>"><%= c.name %></a></td>
+  <td><%= c.country %></td>
+  <td><%= c.population %></td>
+  <td><%= c.industry %></td>
+  <td>
+    <a href="/cities/edit/<%= c.id %>">編集</a> /
+    <a href="/cities/delete/<%= c.id %>">削除</a>
+  </td>
+</tr>
+<% }) %>
+</table>
+<a href="/cities/create">＋ 都市追加</a>
+</body>
+</html>

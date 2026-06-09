@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>選手一覧</title>
+</head>
+<body>
+  <h2>選手一覧</h2>
+
+  <table border="1">
+    <tr><th>名前</th><th>背番号</th><th>操作</th></tr>
+
+    <% data.forEach(p => { %>
+    <tr>
+      <td><a href="/players/detail/<%= p.id %>"><%= p.name %></a></td>
+      <td><%= p.number %></td>
+      <td>
+        <a href="/players/edit/<%= p.id %>">編集</a>
+        |
+        <a href="/players/delete/<%= p.id %>" onclick="return confirm('削除しますか？');">
+          削除
+        </a>
+      </td>
+    </tr>
+    <% }) %>
+  </table>
+
+  <br>
+  <a href="/players/create">選手追加</a>
+</body>
+</html>

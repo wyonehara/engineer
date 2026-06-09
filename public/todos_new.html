@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>Todo追加</title></head>
+<body>
+<h1>Todo追加</h1>
+
+<form action="/todos" method="POST">
+  Title: <input type="text" name="title" required><br><br>
+  Detail: <input type="text" name="detail" required><br><br>
+  priorty:<input type="number" name="priority" required><br><br>
+  <button type="submit">登録</button>
+</form>
+
+<br>
+<button onclick="location.href='/todos'">戻る</button>
+
+</body>
+</html>

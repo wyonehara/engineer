@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title><%= data.name %></title></head>
+<body>
+<h1><%= data.name %> の詳細</h1>
+<p>ID：<%= data.id %></p>
+<p>Country：<%= data.country %></p>
+<p>Population：<%= data.population %></p>
+<p>Industry：<%= data.industry %></p>
+
+<a href="/cities/edit/<%= data.id %>">編集</a> /
+<a href="/cities/delete/<%= data.id %>">削除</a>
+<br><br>
+<a href="/cities">一覧に戻る</a>
+</body>
+</html>
+

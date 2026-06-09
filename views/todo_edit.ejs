@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>Todo 編集</title></head>
+<body>
+<h1>Todo 編集</h1>
+
+<form action="/todos/update/<%= data.id %>" method="post">
+  <p>priority: <input type="number" name="priority" value="<%= data.priority %>" required></p>
+  <p>Title: <input type="text" name="title" value="<%= data.title %>" required></p>
+  <p>Detail: <input type="text" name="detail" value="<%= data.detail %>" required></p>
+  <button type="submit">更新</button>
+</form>
+
+<a href="/todos">戻る</a>
+</body>
+</html>

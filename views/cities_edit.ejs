@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>都市情報編集</title></head>
+<body>
+<h1>都市情報編集</h1>
+
+<form action="/cities/update/<%= data.id %>" method="POST">
+  <p>ID:<input type="number" name="id" value="<%= data.id %>" required></p>
+  <p>Name: <input type="text" name="name" value="<%= data.name %>" required></p>
+  <p>Country: <input type="text" name="country" value="<%= data.country %>" required></p>
+  <p>Population: <input type="number" name="population" value="<%= data.population %>" required></p>
+  <p>Industry: <input type="text" name="industry" value="<%= data.industry %>" required></p>
+
+  <button type="submit">更新</button>
+</form>
+
+<a href="/cities">戻る</a>
+</body>
+</html>

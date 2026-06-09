@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>都市追加</title></head>
+<body>
+<h1>都市追加</h1>
+
+<form action="/cities" method="POST">
+  ID:<input type="number" name="id" required><br><br>
+  Name: <input type="text" name="name" required><br><br>
+  Country: <input type="text" name="country" required><br><br>
+  Population: <input type="number" name="population" required><br><br>
+  Industry: <input type="text" name="industry" required><br><br>
+  <button type="submit">登録</button>
+</form>
+
+<br>
+<button onclick="location.href='/cities'">戻る</button>
+
+</body>
+</html>
