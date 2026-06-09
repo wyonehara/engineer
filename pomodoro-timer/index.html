@@ -653,8 +653,8 @@
     timerIndex = 0;
     repIndex = 0;
     renderEditor();
-    const total = timers.reduce((a, t) => a + totalSeconds(t), 0) * repeatCount;
-    const m = Math.floor(total / 60);
+    const totalSecs = timers.reduce((a, t) => a + totalSeconds(t), 0) * repeatCount;
+    const m = Math.floor(totalSecs / 60);
     document.getElementById('done-stats').textContent = `${repeatCount}セット × ${timers.length}タイマー = 合計 ${m} 分`;
     showView('done');
     if (Notification.permission === 'granted') new Notification('⏱ タイマー完了！', { body: 'すべてのセットが終わりました' });
