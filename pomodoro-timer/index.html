@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>インターバルタイマー</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #111318;
+      --surface: #1e2130;
+      --surface2: #262b3d;
+      --border: #2e3450;
+      --text: #e8eaf6;
+      --muted: #6b7280;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --green: #34d399;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 0;
+    }
+
+    /* ====== LEFT PANEL (editor) ====== */
+    .panel-left {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .panel-header h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .panel-header .pill {
+      margin-left: auto;
+      font-size: 0.72rem;
+      background: var(--surface2);
+      color: var(--muted);
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+    }
+
+    .repeat-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .repeat-row strong { color: var(--text); margin-left: auto; }
+
+    .repeat-controls { display: flex; gap: 0.4rem; align-items: center; }
+
+    .icon-btn {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+      line-height: 1;
+    }
+    .icon-btn:hover { background: var(--border); }
+
+    .repeat-val {
+      width: 36px;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* Timer list */
+    .timer-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .timer-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: grab;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      position: relative;
+    }
+
+    .timer-item:active { cursor: grabbing; }
+    .timer-item.dragging { opacity: 0.4; }
+    .timer-item.drag-over { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+    .timer-item.active-item {
+      border-color: var(--accent);
+      background: #2a2d4a;
+    }
+
+    .color-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .timer-name-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      min-width: 0;
+    }
+
+    .timer-name-input::placeholder { color: var(--muted); }
+
+    .time-inputs {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-size: 0.85rem;
+    }
+
+    .time-input {
+      width: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 0.2rem 0;
+      outline: none;
+    }
+
+    .time-input:focus { border-color: var(--accent); }
+
+    .time-sep { color: var(--muted); }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0.2rem;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .delete-btn:hover { color: var(--accent2); }
+
+    .add-btn {
+      margin: 0 1rem 1rem;
+      padding: 0.65rem;
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    .add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .start-btn {
+      margin: 0 1rem 1.5rem;
+      padding: 0.85rem;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .start-btn:hover { opacity: 0.88; }
+    .start-btn:active { transform: scale(0.98); }
+
+    /* ====== RIGHT PANEL (runner) ====== */
+    .panel-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .idle-msg {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+
+    /* Sequence bar */
+    .sequence-bar {
+      display: flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 480px;
+    }
+
+    .seq-chip {
+      padding: 0.25rem 0.75rem;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      opacity: 0.35;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+    }
+    .seq-chip.done { opacity: 0.6; text-decoration: line-through; }
+    .seq-chip.current { opacity: 1; font-weight: 700; }
+
+    /* Ring */
+    .ring-wrap {
+      position: relative;
+      width: 260px;
+      height: 260px;
+    }
+
+    .ring-svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .ring-bg-c { fill: none; stroke: var(--surface2); stroke-width: 12; }
+    .ring-fg { fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.4s; }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+
+    .current-name {
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .time-big {
+      font-size: 3.8rem;
+      font-weight: 200;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+
+    .rep-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* Controls */
+    .run-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .btn-run {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .btn-run:hover { opacity: 0.88; }
+    .btn-run:active { transform: scale(0.93); }
+
+    .btn-sm {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--text); }
+
+    /* Rep dots */
+    .rep-dots {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .rep-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .rep-dot.done { background: var(--accent); border-color: var(--accent); }
+    .rep-dot.current { border-color: var(--accent); }
+
+    /* Done screen */
+    .done-screen {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .done-screen .emoji { font-size: 3.5rem; }
+    .done-screen h2 { font-size: 1.5rem; font-weight: 300; }
+    .done-screen p { color: var(--muted); font-size: 0.9rem; }
+
+    .btn-again {
+      padding: 0.7rem 2rem;
+      background: var(--accent);
+      border: none;
+      border-radius: 99px;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-again:hover { opacity: 0.85; }
+
+    /* hidden */
+    .hidden { display: none !important; }
+
+    /* scrollbar */
+    .timer-list::-webkit-scrollbar { width: 4px; }
+    .timer-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- LEFT: Editor -->
+<div class="panel-left">
+  <div class="panel-header">
+    <span>⏱</span>
+    <h1>インターバルタイマー</h1>
+    <span class="pill" id="total-time-pill">合計 —</span>
+  </div>
+
+  <div class="repeat-row">
+    <span>繰り返し回数</span>
+    <div class="repeat-controls">
+      <button class="icon-btn" id="rep-minus">－</button>
+      <div class="repeat-val" id="rep-val">3</div>
+      <button class="icon-btn" id="rep-plus">＋</button>
+    </div>
+  </div>
+
+  <div class="timer-list" id="timer-list"></div>
+
+  <button class="add-btn" id="add-btn">＋ タイマーを追加</button>
+  <button class="start-btn" id="start-btn">▶ スタート</button>
+</div>
+
+<!-- RIGHT: Runner -->
+<div class="panel-right" id="panel-right">
+
+  <!-- Idle -->
+  <div id="view-idle" class="idle-msg">
+    左でタイマーを設定して<br>「スタート」を押してください
+  </div>
+
+  <!-- Running -->
+  <div id="view-run" class="hidden" style="display:flex;flex-direction:column;align-items:center;gap:1.75rem;">
+    <div class="sequence-bar" id="seq-bar"></div>
+
+    <div class="ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 260 260">
+        <circle class="ring-bg-c" cx="130" cy="130" r="112"/>
+        <circle class="ring-fg" id="ring-fg" cx="130" cy="130" r="112"/>
+      </svg>
+      <div class="ring-center">
+        <div class="current-name" id="cur-name">—</div>
+        <div class="time-big" id="cur-time">00:00</div>
+        <div class="rep-label" id="cur-rep">— / —</div>
+      </div>
+    </div>
+
+    <div class="rep-dots" id="rep-dots"></div>
+
+    <div class="run-controls">
+      <button class="btn-sm" id="btn-prev" title="前へ">⏮</button>
+      <button class="btn-run" id="btn-playpause">⏸</button>
+      <button class="btn-sm" id="btn-next" title="次へ">⏭</button>
+    </div>
+  </div>
+
+  <!-- Done -->
+  <div id="view-done" class="done-screen hidden">
+    <div class="emoji">🎉</div>
+    <h2>完了！</h2>
+    <p id="done-stats"></p>
+    <button class="btn-again" id="btn-again">もう一度</button>
+  </div>
+
+</div>
+
+<script>
+  // ========== COLOR PALETTE ==========
+  const COLORS = ['#6c63ff','#ff6584','#34d399','#fbbf24','#60a5fa','#f472b6','#a78bfa','#fb923c'];
+
+  // ========== STATE ==========
+  let timers = [
+    { id: uid(), name: '準備', min: 0, sec: 30 },
+    { id: uid(), name: '作業', min: 25, sec: 0 },
+    { id: uid(), name: '休憩', min: 5,  sec: 0 },
+  ];
+  let repeatCount = 3;
+
+  // Runner state
+  let running = false;
+  let timerIndex = 0;
+  let repIndex = 0;
+  let remaining = 0;
+  let total = 0;
+  let ticker = null;
+  let started = false;
+
+  function uid() { return Math.random().toString(36).slice(2); }
+  function colorFor(i) { return COLORS[i % COLORS.length]; }
+  function totalSeconds(t) { return t.min * 60 + t.sec; }
+
+  // ========== EDITOR ==========
+  function renderEditor() {
+    const list = document.getElementById('timer-list');
+    list.innerHTML = '';
+    timers.forEach((t, i) => {
+      const div = document.createElement('div');
+      div.className = 'timer-item' + (started && i === timerIndex ? ' active-item' : '');
+      div.draggable = true;
+      div.dataset.id = t.id;
+
+      div.innerHTML = `
+        <div class="color-dot" style="background:${colorFor(i)}"></div>
+        <input class="timer-name-input" value="${t.name}" placeholder="タイマー名" data-field="name" data-id="${t.id}">
+        <div class="time-inputs">
+          <input class="time-input" type="number" min="0" max="99" value="${t.min}" data-field="min" data-id="${t.id}">
+          <span class="time-sep">:</span>
+          <input class="time-input" type="number" min="0" max="59" value="${String(t.sec).padStart(2,'0')}" data-field="sec" data-id="${t.id}">
+        </div>
+        <button class="delete-btn" data-del="${t.id}" title="削除">✕</button>
+      `;
+      list.appendChild(div);
+    });
+
+    // Drag-and-drop
+    list.querySelectorAll('.timer-item').forEach(el => {
+      el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', el.dataset.id); el.classList.add('dragging'); });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+      el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+      el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+      el.addEventListener('drop', e => {
+        e.preventDefault();
+        el.classList.remove('drag-over');
+        const fromId = e.dataTransfer.getData('text/plain');
+        const toId = el.dataset.id;
+        if (fromId === toId) return;
+        const fi = timers.findIndex(t => t.id === fromId);
+        const ti = timers.findIndex(t => t.id === toId);
+        const [moved] = timers.splice(fi, 1);
+        timers.splice(ti, 0, moved);
+        renderEditor();
+        updatePill();
+      });
+    });
+
+    // Field inputs
+    list.querySelectorAll('input[data-field]').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const t = timers.find(x => x.id === inp.dataset.id);
+        if (!t) return;
+        if (inp.dataset.field === 'name') t.name = inp.value;
+        if (inp.dataset.field === 'min') t.min = Math.max(0, parseInt(inp.value) || 0);
+        if (inp.dataset.field === 'sec') {
+          t.sec = Math.max(0, Math.min(59, parseInt(inp.value) || 0));
+          inp.value = String(t.sec).padStart(2,'0');
+        }
+        updatePill();
+      });
+    });
+
+    // Delete
+    list.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        timers = timers.filter(t => t.id !== btn.dataset.del);
+        renderEditor();
+        updatePill();
+      });
+    });
+
+    updatePill();
+  }
+
+  function updatePill() {
+    const secs = timers.reduce((a, t) => a + totalSeconds(t), 0) * repeatCount;
+    const m = Math.floor(secs / 60), s = secs % 60;
+    document.getElementById('total-time-pill').textContent =
+      secs > 0 ? `合計 ${m}分${s > 0 ? s+'秒' : ''}` : '合計 —';
+  }
+
+  document.getElementById('add-btn').addEventListener('click', () => {
+    timers.push({ id: uid(), name: `タイマー${timers.length + 1}`, min: 1, sec: 0 });
+    renderEditor();
+    document.getElementById('timer-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('rep-minus').addEventListener('click', () => {
+    if (repeatCount > 1) { repeatCount--; document.getElementById('rep-val').textContent = repeatCount; updatePill(); }
+  });
+  document.getElementById('rep-plus').addEventListener('click', () => {
+    if (repeatCount < 99) { repeatCount++; document.getElementById('rep-val').textContent = repeatCount; updatePill(); }
+  });
+
+  // ========== RUNNER ==========
+  const CIRCUM = 2 * Math.PI * 112;
+  const ringFg = document.getElementById('ring-fg');
+  ringFg.style.strokeDasharray = CIRCUM;
+
+  function showView(name) {
+    ['idle','run','done'].forEach(v => {
+      document.getElementById('view-' + v).classList.toggle('hidden', v !== name);
+    });
+  }
+
+  function loadTimer() {
+    const t = timers[timerIndex];
+    total = totalSeconds(t);
+    remaining = total;
+    document.getElementById('cur-name').textContent = t.name;
+    document.getElementById('cur-rep').textContent = `${repIndex + 1} / ${repeatCount} 回目`;
+    ringFg.style.stroke = colorFor(timerIndex);
+    updateRing();
+    updateSeqBar();
+    renderEditor(); // highlight active
+  }
+
+  function updateRing() {
+    const frac = total > 0 ? remaining / total : 0;
+    ringFg.style.strokeDashoffset = CIRCUM * (1 - frac);
+    document.getElementById('cur-time').textContent = fmt(remaining);
+  }
+
+  function fmt(s) {
+    const m = Math.floor(s / 60), sec = s % 60;
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+
+  function updateSeqBar() {
+    const bar = document.getElementById('seq-bar');
+    bar.innerHTML = '';
+    timers.forEach((t, i) => {
+      const chip = document.createElement('div');
+      chip.className = 'seq-chip ' + (i < timerIndex ? 'done' : i === timerIndex ? 'current' : '');
+      chip.style.background = colorFor(i) + '33';
+      chip.style.color = colorFor(i);
+      chip.textContent = t.name;
+      bar.appendChild(chip);
+    });
+  }
+
+  function updateRepDots() {
+    const dots = document.getElementById('rep-dots');
+    dots.innerHTML = '';
+    for (let i = 0; i < repeatCount; i++) {
+      const d = document.createElement('div');
+      d.className = 'rep-dot' + (i < repIndex ? ' done' : i === repIndex ? ' current' : '');
+      dots.appendChild(d);
+    }
+  }
+
+  function tick() {
+    if (remaining <= 0) { advance(); return; }
+    remaining--;
+    updateRing();
+  }
+
+  function advance() {
+    timerIndex++;
+    if (timerIndex >= timers.length) {
+      timerIndex = 0;
+      repIndex++;
+      if (repIndex >= repeatCount) {
+        finish();
+        return;
+      }
+      updateRepDots();
+    }
+    loadTimer();
+  }
+
+  function finish() {
+    clearInterval(ticker);
+    running = false;
+    started = false;
+    timerIndex = 0;
+    repIndex = 0;
+    renderEditor();
+    const total = timers.reduce((a, t) => a + totalSeconds(t), 0) * repeatCount;
+    const m = Math.floor(total / 60);
+    document.getElementById('done-stats').textContent = `${repeatCount}セット × ${timers.length}タイマー = 合計 ${m} 分`;
+    showView('done');
+    if (Notification.permission === 'granted') new Notification('⏱ タイマー完了！', { body: 'すべてのセットが終わりました' });
+  }
+
+  function play() {
+    running = true;
+    ticker = setInterval(tick, 1000);
+    document.getElementById('btn-playpause').textContent = '⏸';
+  }
+
+  function pause() {
+    running = false;
+    clearInterval(ticker);
+    document.getElementById('btn-playpause').textContent = '▶';
+  }
+
+  document.getElementById('start-btn').addEventListener('click', () => {
+    if (timers.length === 0) return;
+    if (timers.every(t => totalSeconds(t) === 0)) return;
+    if (Notification.permission === 'default') Notification.requestPermission();
+
+    started = true;
+    timerIndex = 0;
+    repIndex = 0;
+    showView('run');
+    updateRepDots();
+    loadTimer();
+    play();
+  });
+
+  document.getElementById('btn-playpause').addEventListener('click', () => {
+    running ? pause() : play();
+  });
+
+  document.getElementById('btn-next').addEventListener('click', () => {
+    clearInterval(ticker);
+    advance();
+    if (running) play();
+  });
+
+  document.getElementById('btn-prev').addEventListener('click', () => {
+    clearInterval(ticker);
+    if (remaining < total - 1) {
+      remaining = total;
+      updateRing();
+    } else {
+      timerIndex = Math.max(0, timerIndex - 1);
+      loadTimer();
+    }
+    if (running) play();
+  });
+
+  document.getElementById('btn-again').addEventListener('click', () => {
+    showView('run');
+    timerIndex = 0;
+    repIndex = 0;
+    updateRepDots();
+    loadTimer();
+    play();
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); if (started) running ? pause() : play(); }
+    if (e.code === 'ArrowRight') document.getElementById('btn-next').click();
+    if (e.code === 'ArrowLeft') document.getElementById('btn-prev').click();
+  });
+
+  // ========== INIT ==========
+  renderEditor();
+  showView('idle');
+</script>
+</body>
+</html>
