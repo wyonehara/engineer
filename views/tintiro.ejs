@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>チンチロ</title>
+</head>
+<body>
+    <p>あなたの手は<%= your %><%= your1 %><%= your2 %>です．</p>
+    <p>コンピュータは<%= cpu %><%= cpu1 %><%= cpu2 %>です．</p>
+    <p>判定：<%= judgement %></p>
+    <p>現在<%= total %>回中<%= win %>勝しています．</p>
+    <hr>
+    <form action="/tintiro">
+        <input type="button" name="battle" id="battle">
+        <label for="battle">もう一回</label>
+        <input type="hidden" name="win" value="<%= win %>">
+        <input type="hidden" name="total" value="<%= total %>">
+        <input type="submit" values="勝負">
+    </form>   
+</body>
+</html>
